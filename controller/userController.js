@@ -10,7 +10,7 @@ io.on("connection", (socket) => {
   // send a message to the client
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     setInterval(() => {
-    console.log("Wallet Addr :: ", walletAddr);
+    // console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
       });
@@ -43,7 +43,7 @@ function roiIncomeSockets(walletAddr) {
               let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRemainRoi = perSecondRoi * diffRemainTime;
-              console.log("Freeze111 :: ", perSecondRoi, totalRoi);
+              // console.log("Freeze111 :: ", perSecondRoi, totalRoi);
 
               resolve({
                 status: 200,
@@ -56,7 +56,6 @@ function roiIncomeSockets(walletAddr) {
             } else {
               let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
               let totalRoi = perSecondRoi * diffTime;
-              console.log("Freeze :: ", perSecondRoi, totalRoi);
               resolve({
                 status: 200,
                 freezeAmt: Number(freezeData.freezeAmt),
@@ -450,7 +449,7 @@ async function unStake(req, res) {
     const { walletAddr } = req.body;
       userModel.findOne({walletAddr: walletAddr}).then((walletAddr) => {
         if (walletAddr) {
-          roiIncomeSockets(walletAddr).then((a) => {
+          roiIncomeSockets(walletAddr.walletAddr).then((a) => {
             if (a.status == 200) {
               freezeModel.findOne({_id: a.objectId,})
                 .then((freezeData) => {
@@ -550,7 +549,7 @@ async function getFreez(req, res) {
     const freez = await freezeModel.findOne({walletAddr: walletAddr}).then((data) => {
       res.json({
         status: 200,
-        freez: freez,
+        freez: data,
       });
     })
   }catch (error) {
