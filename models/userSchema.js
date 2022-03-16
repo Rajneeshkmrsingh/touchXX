@@ -7,7 +7,7 @@ var userSchema = new mongoose.Schema(
         walletAddr: { type: String, unique: true, required: true },
         mnemonicPhrase: { type: [], required: true },
         privateKey: { type: String, unique: true },
-        referrerId: { type: Number, required: true },
+        referrerId: { type: String, required: true },
         referrerAddr: { type: String },
         status: { type: Number, default: 1 },
     },
