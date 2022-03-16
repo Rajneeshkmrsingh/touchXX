@@ -565,25 +565,26 @@ async function referalHarvest(req, res) {
 	userModel.findOne({ walletAddr: walletAddr }).then((user) => {
 		roiIncomeSockets(user.walletAddr).then((a) => {
 			if (a.status == 200) {
+				console.log("AAA:: ",a)
 			  freezeModel.findOne({ _id: a.objectId }).then((freezeData) => {
 				//send stake amt
-				transferTrx(freezeData.referrerAddr, a.totalRefcomision);
-				console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
+				// transferTrx(freezeData.referrerAddr, a.totalRefcomision);
+				// console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
   
 				//update freeze Amt
-				freezeModel
-				  .updateOne(
-					{ _id: a.objectId },
-					{
-					  $set: { parentHarvst: Date.now(), parentroiAmount: Number(a.totalRoi) },
-					}
-				  )
-				  .then((datata) => {
-					res.json({
-					  status: 200,
-					  msg: "Successfully updated!",
-					});
-				  });
+				// freezeModel
+				//   .updateOne(
+				// 	{ _id: a.objectId },
+				// 	{
+				// 	  $set: { parentHarvst: Date.now(), parentroiAmount: Number(a.totalRoi) },
+				// 	}
+				//   )
+				//   .then((datata) => {
+				// 	res.json({
+				// 	  status: 200,
+				// 	  msg: "Successfully updated!",
+				// 	});
+				//   });
 			  });
 			} else {
 			  res.json({
@@ -698,5 +699,6 @@ module.exports = {
   roiIncomeSockets,
   setting,
   getFreez,
-  createRevenue
+  createRevenue,
+  referalHarvest
 };
