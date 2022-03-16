@@ -10,7 +10,7 @@ io.on("connection", (socket) => {
   // send a message to the client
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     setInterval(() => {
-    // console.log("Wallet Addr :: ", walletAddr);
+    console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
       });
@@ -454,13 +454,13 @@ async function unStake(req, res) {
               freezeModel.findOne({_id: a.objectId,})
                 .then((freezeData) => {
                   //send stake amt
-                  // transferTrx(freezeData.walletAddr, a.totalRoi)
+                  transferTrx(freezeData.walletAddr, a.totalRoi)
                   console.log("Freeze Amt :: ",Number(freezeData.freezeAmt) + Number(a.totalRoi));
     
                   //update freeze Amt
                   freezeModel.updateOne({_id: a.objectId},
                       {
-                        $set: { freezeStatus: 0, roiAmount: Number(a.totalRoi) },
+                        $set: { freezeStatus: 1, roiAmount: Number(a.totalRoi) },
                       }
                     )
                     .then((datata) => {

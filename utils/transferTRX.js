@@ -18,28 +18,39 @@ async function createTRXAddress() {
   }
 }
 
-async function transferTrx(walletAddr,  amount) {
+async function transferTrx(walletAddr, amount) {
+  console.log("TRXXXXXX");
   const TronWeb = require("tronweb");
-  const tronWeb = new TronWeb({
-    fullHost: "https://api.trongrid.io",
-  });
-  if (wallet_data.wallet_type == "TRX") {
-    const tradeobj = await tronWeb.transactionBuilder.sendTrx( walletAddr, amount * 1e6, process.env.walletAddr);
-    const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
+    const tronWeb = new TronWeb({
+      // fullHost: "https://api.trongrid.io",
+      fullHost: "https://api.shasta.trongrid.io/",
+
+    });
+  try {
+    console.log("called>>>>", walletAddr)
+    // if (wallet_data.wallet_type == "TRX") {
+    const addwalletAddr = "TYibhCX2kdNVjQQrv8ZMAREs5RKjKMy2R4";
+    const addprivateKey =
+      "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
+    const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+      walletAddr,
+      100 * 1e6,
+      addwalletAddr
+    );
+    const signedtxn = await tronWeb.trx.sign(tradeobj, addprivateKey);
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-    console.log(trxreceipt )
-  
-    
+    console.log("TEST:: ",trxreceipt);
+
+    // }
+  } catch (error) {
+    console.log("ERROR:: ",error);
   }
 }
-
-
 
 module.exports = {
   createTRXAddress,
   transferTrx,
 };
-
 
 // const TronWeb = require('tronweb');
 // const HttpProvider = TronWeb.providers.HttpProvider;
