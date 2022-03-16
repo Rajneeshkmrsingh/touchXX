@@ -1,7 +1,7 @@
 const express = require("express");
 const { validateEmail } = require("../middleware/validation");
 const user = express.Router();
-const { insertUserApi, freezeApi, unStake, test, checkUserExist, roiIncomeSocket, insertAdminApi, getFreez } = require('../controller/userController')
+const { insertUserApi, freezeApi, unStake, test, checkUserExist, roiIncomeSocket, insertAdminApi, getFreez, getTeam } = require('../controller/userController')
 
 
 user.use(express.json());
@@ -11,6 +11,8 @@ user.use(express.json());
 user.post("/test", validateEmail, test)
 
 user.post("/saxveyuszer", insertUserApi)
+
+user.post("/getTeam", getTeam)
 
 user.post("/saxveyadmin", insertAdminApi)
 
