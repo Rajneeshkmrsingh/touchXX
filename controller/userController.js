@@ -14,7 +14,7 @@ io.on("connection", (socket) => {
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
       });
-    }, 1000);
+    }, 1000000);
   });
 });
 
@@ -38,13 +38,18 @@ function roiIncomeSockets(walletAddr) {
         .findOne({ walletAddr: walletAddr, freezeStatus: 1 })
         .then((freezeData) => {
           if (freezeData) {
-            let perSecondRoi = (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-            let refferalperSecondRoi = (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+            let perSecondRoi =
+              (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+            let refferalperSecondRoi =
+              (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
             if (date < freezeData.freezeEndDuration) {
-              let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime =
+                date / 1000 - freezeData.freezeStartDuration / 1000;
               let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
-              let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
-              let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
+              let parentRemainTime =
+                freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+              let diffRemainTime =
+                freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
               let parentTotalRemaningRoi = perSecondRoi * parentRemainTime; // parrent
@@ -63,9 +68,21 @@ function roiIncomeSockets(walletAddr) {
                 parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             } else {
-              let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime =
+                freezeData.freezeEndDuration / 1000 -
+                freezeData.freezeStartDuration / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * diffTime;
+              freezeModel.updateOne(
+                { walletAddr: walletAddr },
+                {
+                  $set: {
+                    roiAmount: totalRoi,
+                    parentroiAmount: totalRefcomision,
+                    freezeStatus: 2,
+                  },
+                }
+              );
               resolve({
                 status: 200,
                 freezeAmt: Number(freezeData.freezeAmt),
@@ -576,23 +593,30 @@ async function referalHarvest(req, res) {
       if (a.status == 200) {
         console.log("AAA:: ", a);
         freezeModel.findOne({ _id: a.objectId }).then((freezeData) => {
-          //send stake amt
-          // transferTrx(freezeData.referrerAddr, a.totalRefcomision);
-          // console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
-          //update freeze Amt
-          // freezeModel
-          //   .updateOne(
-          // 	{ _id: a.objectId },
-          // 	{
-          // 	  $set: { parentHarvst: Date.now(), parentroiAmount: Number(a.totalRoi) },
-          // 	}
-          //   )
-          //   .then((datata) => {
-          // 	res.json({
-          // 	  status: 200,
-          // 	  msg: "Successfully updated!",
-          // 	});
-          //   });
+          // send stake amt
+          transferTrx(freezeData.referrerAddr, a.totalRefcomision).then(() => {
+            console.log(
+              "Freeze Amt :: ",
+              Number(freezeData.freezeAmt) + Number(a.totalRoi)
+            );
+            // update freeze Amt
+            freezeModel
+              .updateOne(
+                { _id: a.objectId },
+                {
+                  $set: {
+                    parentHarvst: Date.now(),
+                    parentroiAmount: Number(a.totalRoi),
+                  },
+                }
+              )
+              .then((datata) => {
+                res.json({
+                  status: 200,
+                  msg: "Successfully updated!",
+                });
+              });
+          });
         });
       } else {
         res.json({

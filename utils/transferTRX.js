@@ -35,9 +35,9 @@ async function transferTrx(walletAddr, amount) {
     const tradeobj = await tronWeb.transactionBuilder.sendTrx(
       walletAddr,
       100 * 1e6,
-      addwalletAddr
+      process.env.walletAddr //  admin walletAddr 
     );
-    const signedtxn = await tronWeb.trx.sign(tradeobj, addprivateKey);
+    const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
     console.log("TEST:: ",trxreceipt);
 
