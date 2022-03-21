@@ -32,15 +32,19 @@ async function transferTrx(walletAddr, amount) {
     const addwalletAddr = "TYibhCX2kdNVjQQrv8ZMAREs5RKjKMy2R4";
     const addprivateKey =
       "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
+      // let checkbal = await tronWeb.trx.getAccount(
+      //   process.env.walletAddr,
+      // );
+      // console.log("TEST:: ",checkbal, tronWeb.address.fromHex(checkbal.address));
     const tradeobj = await tronWeb.transactionBuilder.sendTrx(
       walletAddr,
-      100 * 1e6,
+      amount * 1e6,
       process.env.walletAddr //  admin walletAddr 
     );
     const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-    console.log("TEST:: ",trxreceipt);
-
+   
+      console.log("trxreceipt:: ",trxreceipt)
     // }
   } catch (error) {
     console.log("ERROR:: ",error);
