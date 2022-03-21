@@ -31,7 +31,7 @@ app.use(
 );
 
 app.use(express.static("public"));
-app.use("/user", adminRouter);
+app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 
 app.get("/", function (res, res) {
