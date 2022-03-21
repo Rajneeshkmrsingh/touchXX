@@ -1,5 +1,6 @@
 const express = require("express");
 const userRouter = require("./router/userRouter");
+const adminRouter = require("./router/adminRouter");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
@@ -30,7 +31,9 @@ app.use(
 );
 
 app.use(express.static("public"));
-app.use("/user", userRouter);
+app.use("/user", adminRouter);
+app.use("/admin", adminRouter);
+
 app.get("/", function (res, res) {
   res.json({
     status: "1",

@@ -41,13 +41,13 @@ function roiIncomeSockets(walletAddr) {
             let perSecondRoi = (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
             let refferalperSecondRoi = (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
             if (date < freezeData.freezeEndDuration) {
-              let diffTime =  date / 1000 - freezeData.freezeStartDuration / 1000;
-              let parentdiffTime =  date / 1000 - freezeData.parentHarvst / 1000; 					// parrent
-              let parentRemainTime =  freezeData.freezeEndDuration / 1000 - date / 1000;			// parent 
-              let diffRemainTime =  freezeData.freezeEndDuration / 1000 - date / 1000;					
+              let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
+              let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
+              let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+              let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
-              let totalRefcomision = refferalperSecondRoi * parentdiffTime;							// parent
-			  let parentTotalRemaningRoi = perSecondRoi * parentRemainTime;							// parrent
+              let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
+              let parentTotalRemaningRoi = perSecondRoi * parentRemainTime; // parrent
               let totalRemainRoi = perSecondRoi * diffRemainTime;
               // console.log("Freeze111 :: ", perSecondRoi, totalRoi);
 
@@ -57,10 +57,10 @@ function roiIncomeSockets(walletAddr) {
                 objectId: freezeData._id,
                 perSecondRoi: perSecondRoi,
                 totalRemainRoi: totalRemainRoi,
-                totalRefcomision : totalRefcomision,
+                totalRefcomision: totalRefcomision,
                 totalRoi: totalRoi,
-				refferalperSecondRoi: refferalperSecondRoi,
-				parentTotalRemaningRoi: parentTotalRemaningRoi
+                refferalperSecondRoi: refferalperSecondRoi,
+                parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             } else {
               let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
@@ -73,9 +73,9 @@ function roiIncomeSockets(walletAddr) {
                 perSecondRoi: perSecondRoi,
                 totalRemainRoi: 0,
                 totalRoi: totalRoi,
-                totalRefcomision : totalRefcomision,
-				refferalperSecondRoi: refferalperSecondRoi,
-				parentTotalRemaningRoi: parentTotalRemaningRoi
+                totalRefcomision: totalRefcomision,
+                refferalperSecondRoi: refferalperSecondRoi,
+                parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             }
           } else {
@@ -123,7 +123,7 @@ async function getUserDetailsById(uniqueId) {
     .then((resp) => {
       return {
         status: true,
-        data: (resp != null)? resp : "selfrererr",
+        data: resp != null ? resp : "selfrererr",
       };
     })
     .catch((error) => {
@@ -183,7 +183,8 @@ async function insertAdminApi(req, res) {
             uniqueId: uniqueId,
             walletAddr: walletAddr,
             walletName: walletName,
-          }).then((resp) => {
+          })
+            .then((resp) => {
               if (resp == 0) {
                 Admin.create({
                   uniqueId: uniqueId,
@@ -267,7 +268,7 @@ async function insertUserApi(req, res) {
             .then((resp) => {
               if (resp == 0) {
                 getUserDetailsById(referrerAddr).then((userDetail) => {
-					console.log(userDetail)
+                  console.log(userDetail);
                   if (userDetail.status) {
                     userModel
                       .create({
@@ -275,7 +276,9 @@ async function insertUserApi(req, res) {
                         walletAddr: walletAddr,
                         walletName: walletName,
                         privateKey: privateKey,
-                        referrerId: userDetail.data.referrerId ? userDetail.data.referrerId: "selfrererr",
+                        referrerId: userDetail.data.referrerId
+                          ? userDetail.data.referrerId
+                          : "selfrererr",
                         referrerAddr: userDetail.data.walletAddr
                           ? userDetail.data.walletAddr
                           : "",
@@ -342,15 +345,15 @@ async function insertUserApi(req, res) {
 }
 
 async function getTeam(req, res) {
-  try{
-    const { walletAddr } = req.body
+  try {
+    const { walletAddr } = req.body;
     freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
-      if(data && data.length > 0){
-        return res.status(200).json({ msg: "All record", team: data})
+      if (data && data.length > 0) {
+        return res.status(200).json({ msg: "All record", team: data });
       } else {
-        return res.status(200).json({ msg: "refferls not found", team: data})
+        return res.status(200).json({ msg: "refferls not found", team: data });
       }
-    })
+    });
     // userModel.aggregate([
     //   { "$match":  {referrerAddr: walletAddr} },
     //   {
@@ -373,8 +376,8 @@ async function getTeam(req, res) {
     //     }
     //   }
     // ])
-  }catch(error) {
-    console.log("error:: ", error)
+  } catch (error) {
+    console.log("error:: ", error);
     res.json({
       status: 400,
       msg: "Inputs are invalid!",
@@ -485,18 +488,21 @@ async function roiIncomeSocket(req, res) {
         })
         .then((freezeData) => {
           let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
-          let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
-          let perSecondRoi = (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+          let diffRemainTime =
+            freezeData.freezeEndDuration / 1000 - date / 1000;
+          let perSecondRoi =
+            (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
           let totalRoi = perSecondRoi * diffTime;
           let totalRemainRoi = perSecondRoi * diffRemainTime;
-          let refferalperSecondRoi = (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
-          let totalReferralRoi =  refferalperSecondRoi * diffTime;
+          let refferalperSecondRoi =
+            (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+          let totalReferralRoi = refferalperSecondRoi * diffTime;
           res.json({
             status: 200,
             totalRemainRoi: totalRemainRoi,
             perSecondRoi: perSecondRoi,
             totalRoi: totalRoi,
-            referalCommition: totalReferralRoi
+            referalCommition: totalReferralRoi,
           });
         });
     }
@@ -520,7 +526,10 @@ async function unStake(req, res) {
             freezeModel.findOne({ _id: a.objectId }).then((freezeData) => {
               //send stake amt
               transferTrx(freezeData.walletAddr, a.totalRoi);
-              console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
+              console.log(
+                "Freeze Amt :: ",
+                Number(freezeData.freezeAmt) + Number(a.totalRoi)
+              );
 
               //update freeze Amt
               freezeModel
@@ -561,39 +570,38 @@ async function unStake(req, res) {
 }
 
 async function referalHarvest(req, res) {
-	const { walletAddr } = req.body
-	userModel.findOne({ walletAddr: walletAddr }).then((user) => {
-		roiIncomeSockets(user.walletAddr).then((a) => {
-			if (a.status == 200) {
-				console.log("AAA:: ",a)
-			  freezeModel.findOne({ _id: a.objectId }).then((freezeData) => {
-				//send stake amt
-				// transferTrx(freezeData.referrerAddr, a.totalRefcomision);
-				// console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
-  
-				//update freeze Amt
-				// freezeModel
-				//   .updateOne(
-				// 	{ _id: a.objectId },
-				// 	{
-				// 	  $set: { parentHarvst: Date.now(), parentroiAmount: Number(a.totalRoi) },
-				// 	}
-				//   )
-				//   .then((datata) => {
-				// 	res.json({
-				// 	  status: 200,
-				// 	  msg: "Successfully updated!",
-				// 	});
-				//   });
-			  });
-			} else {
-			  res.json({
-				status: 400,
-				msg: "No value found to unstake!",
-			  });
-			}
-		  });
-	})
+  const { walletAddr } = req.body;
+  userModel.findOne({ walletAddr: walletAddr }).then((user) => {
+    roiIncomeSockets(user.walletAddr).then((a) => {
+      if (a.status == 200) {
+        console.log("AAA:: ", a);
+        freezeModel.findOne({ _id: a.objectId }).then((freezeData) => {
+          //send stake amt
+          // transferTrx(freezeData.referrerAddr, a.totalRefcomision);
+          // console.log( "Freeze Amt :: ", Number(freezeData.freezeAmt) + Number(a.totalRoi));
+          //update freeze Amt
+          // freezeModel
+          //   .updateOne(
+          // 	{ _id: a.objectId },
+          // 	{
+          // 	  $set: { parentHarvst: Date.now(), parentroiAmount: Number(a.totalRoi) },
+          // 	}
+          //   )
+          //   .then((datata) => {
+          // 	res.json({
+          // 	  status: 200,
+          // 	  msg: "Successfully updated!",
+          // 	});
+          //   });
+        });
+      } else {
+        res.json({
+          status: 400,
+          msg: "No value found to unstake!",
+        });
+      }
+    });
+  });
 }
 
 async function setting(req, res) {
@@ -663,11 +671,16 @@ async function getFreez(req, res) {
   }
 }
 // create revenue
-async function createRevenue(walletAddr, revenueFromWalletAddr, amount, revenueType) {
+async function createRevenue(
+  walletAddr,
+  revenueFromWalletAddr,
+  amount,
+  revenueType
+) {
   const Revenue = require("../models/revenueSchema");
-  userModel.find({ walletAddr: walletAddr }).then(async(data) => {
-    const revenufrom = userModel.findOne({ walletAddr: revenueFromWalletAddr })
-     Revenue.create({
+  userModel.find({ walletAddr: walletAddr }).then(async (data) => {
+    const revenufrom = userModel.findOne({ walletAddr: revenueFromWalletAddr });
+    Revenue.create({
       uniqueId: data.uniqueId,
       walletAddr: data.walletAddr,
       revenueFromUniqueId: revenufrom.uniqueId,
@@ -675,16 +688,14 @@ async function createRevenue(walletAddr, revenueFromWalletAddr, amount, revenueT
       revenueAmt: amount,
       revenueType: revenueType,
     }).then((error, data) => {
-      if(error) console.log(error)
-      if(data) console.log("revenuCreated")
-    }) 
-  })
+      if (error) console.log(error);
+      if (data) console.log("revenuCreated");
+    });
+  });
 }
 
 // create history
-async function createHistory() {
-
-}
+async function createHistory() {}
 
 module.exports = {
   test,
@@ -700,5 +711,5 @@ module.exports = {
   setting,
   getFreez,
   createRevenue,
-  referalHarvest
+  referalHarvest,
 };
