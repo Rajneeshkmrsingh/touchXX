@@ -1,3 +1,6 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const admin = require("../models/admin");
 async function signup(req, res) {
   try {
     const admin = await Admin.findOne({ email: req.body.email });
@@ -39,16 +42,15 @@ async function signup(req, res) {
 }
 
 async function signin(req, res) {
+  const Admin = require("../models/admin");
   try {
     Admin.findOne({ email: req.body.email }).then(async (admin, error) => {
       if (error) return res.status(400).json({ error });
       if (admin) {
-        let isValid = bcrypt.compareSync(
-          req.body.password,
-          admin.hash_password
-        );
+        console.log(req.body);
+        let isValid = bcrypt.compareSync(req.body.password, admin.password);
         if (isValid) {
-          const { _id, email } = admin;
+          const { _id, email, walletName, walletAddr } = admin;
           const token = jwt.sign(
             { _id: admin._id, email: admin.email },
             process.env.JWT_SECRET,
@@ -59,7 +61,8 @@ async function signin(req, res) {
             admin: {
               _id,
               email,
-              owner_wallet_address,
+              walletName,
+              walletAddr,
             },
           });
         } else {
@@ -117,11 +120,120 @@ async function getAllUser(req, res) {
   }
 }
 
+async function addWallet(req, res) {
+  const Admin = require("../models/adminWallet");
+  try {
+    const { walletAddr, privateKey, name } = req.body;
+    const wallet = await Admin.findOne({ walletAddr: walletAddr });
+    if (wallet) {
+      return res.status(400).json({ message: "Wallet already exiest" });
+    }
+    const createWall = new Admin({
+      name,
+      walletAddr,
+      privateKey,
+    });
+    createWall.save((error, wall) => {
+      if (error) {
+        console.log("Error from: addWallet", error.message);
+        return res.status(400).json({ message: "something went wrong" });
+      }
+      if (wall) {
+        return res.status(200).json({ message: "wallet Added", wall: wall });
+      }
+    });
+
+    // Admin.updateOne(
+    //   { _id: req.body._id },
+    //   {
+    //     $push: {
+    //       walletDetails: {
+    //         name: name,
+    //         privateKey: privateKey,
+    //         walletAddr: walletAddr,
+    //       },
+    //     },
+    //   }
+    // ).then((d) => {
+    //   return res.status(200).json({ message: "wallet added successfully" });
+    // });
+  } catch (error) {
+    console.log("Error From: adminController >>addWallet ", error.message);
+    return res.status(400).json({ message: "Somthing went wrong" });
+  }
+}
+
+async function getAdminWallet(req, res) {
+  const adminWallet = require("../models/adminWallet");
+  try{
+    adminWallet.find(req.body).then((wall) => {
+      return res.status(200).json({msg: "Wallets", wall: wall})
+    })
+
+  }catch(error) {
+    console.log("Error from: getAdminWallet ", error.message)
+    return res.status(400).json({msg: "Somthing went wrong"})
+  }
+}
+
+async function adminWalletConfig(req, res) {
+  const Admin = require("../models/adminWallet");
+  try {
+    const { configType, status, walletAddr } = req.body;
+    console.log(req.body)
+    switch (configType) {
+      case "freezOnof":
+        await Admin.updateOne(
+          { walletAddr: walletAddr },
+          {
+            $set: {
+              freezOnof: status,
+            },
+          }
+        ).then(() => {
+          return res.status(200).json({ message: "success" });
+        })
+        break;
+      case "withdrawlOnof":
+        Admin.updateOne(
+          { walletAddr: walletAddr },
+          {
+            $set: {
+              withdrawlOnof: status,
+            },
+          }
+        ).then(() => {
+          return res.status(200).json({ message: "success" });
+        })
+        break;
+    }
+    
+    // const { configType, status, walletAddr, name } = req.body;
+    // adminWalletConfig.find({});
+    // // const adminWallet = Admin.findOne({id: req.body>_id}).filter((data) => )
+    // Admin.findOneAndUpdate(
+    //   { _id: req.body._id, "walletDetails.name": name },
+    //   {
+    //     $set: {
+    //       "walletDetails.$.freezOnof": false,
+    //     },
+    //   }
+    // ).then((d) => {
+    //   return res.status(200).json({ message: "success" });
+    // });
+  } catch (error) {
+    res.status(400).json({ msg: "somthing went wrong" });
+  }
+}
+
 
 
 module.exports = {
   signup,
   signin,
+  addWallet,
+  adminWalletConfig,
+  getAdminWallet,
   allFreezData,
   getAllUser,
 };

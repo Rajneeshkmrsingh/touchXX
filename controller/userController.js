@@ -8,18 +8,20 @@ const io = new Server(8081);
 
 io.on("connection", (socket) => {
   // send a message to the client
+  let a ;
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
-    const a = setInterval(() => {
+    a =setInterval(() => {
       console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
       });
-    }, 1000000);
-    clearInterval(a);
+    }, 100000);
   });
-  // socket.on("disconnect",() => {
-  //   socket.disconnect()
-  // })
+
+  socket.on("disconnect",() => {
+    socket.disconnect();
+    clearInterval(a);
+  })
 });
 
 async function test(req, res) {
@@ -42,18 +44,13 @@ function roiIncomeSockets(walletAddr) {
         .findOne({ walletAddr: walletAddr, freezeStatus: 1 })
         .then((freezeData) => {
           if (freezeData) {
-            let perSecondRoi =
-              (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-            let refferalperSecondRoi =
-              (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+            let perSecondRoi =(freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+            let refferalperSecondRoi =(freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
             if (date < freezeData.freezeEndDuration) {
-              let diffTime =
-                date / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
               let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
-              let parentRemainTime =
-                freezeData.freezeEndDuration / 1000 - date / 1000; // parent
-              let diffRemainTime =
-                freezeData.freezeEndDuration / 1000 - date / 1000;
+              let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+              let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
               let parentTotalRemaningRoi = refferalperSecondRoi * parentRemainTime; // parrent
@@ -72,21 +69,19 @@ function roiIncomeSockets(walletAddr) {
                 parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             } else {
-              let diffTime =
-                freezeData.freezeEndDuration / 1000 -
-                freezeData.freezeStartDuration / 1000;
+              let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * diffTime;
-              // freezeModel.updateOne(
-              //   { walletAddr: walletAddr },
-              //   {
-              //     $set: {
-              //       roiAmount: totalRoi,
-              //       parentroiAmount: totalRefcomision,
-              //       freezeStatus: 2,
-              //     },
-              //   }
-              // );
+              freezeModel.updateOne(
+                { walletAddr: walletAddr },
+                {
+                  $set: {
+                    roiAmount: totalRoi,
+                    parentroiAmount: totalRefcomision,
+                    freezeStatus: 2,
+                  },
+                }
+              );
               resolve({
                 status: 200,
                 freezeAmt: Number(freezeData.freezeAmt),
@@ -96,7 +91,6 @@ function roiIncomeSockets(walletAddr) {
                 totalRoi: totalRoi,
                 totalRefcomision: totalRefcomision,
                 refferalperSecondRoi: refferalperSecondRoi,
-                parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             }
           } else {
@@ -189,7 +183,7 @@ async function checkUserExist(req, res) {
 }
 
 async function insertAdminApi(req, res) {
-  const Admin = require("../models/adminWallet");
+  const Admin = require("../models/admin");
   try {
     const { walletName, walletAddr, privateKey } = req.body;
     // const isarr = Array.isArray(mnemonicPhrase) ? mnemonicPhrase.length > 0 ? true : false: false;
@@ -407,12 +401,11 @@ async function getTeam(req, res) {
 }
 
 async function freezeApi(req, res) {
+  const adminWallet = require("../models/adminWallet")
   try {
-    const { freezeAmt, walletAddr, adminWallet } = req.body;
+    const { freezeAmt, walletAddr } = req.body;
     if (freezeAmt != undefined && walletAddr != undefined) {
-      userModel
-        .findOne({ walletAddr: walletAddr })
-        .then((resp) => {
+      userModel.findOne({ walletAddr: walletAddr }).then((resp) => {
           if (resp) {
             if (resp.status == 1) {
               userModel
@@ -436,7 +429,31 @@ async function freezeApi(req, res) {
                       freezeEndDuration: new Date().getTime() + 604800000,
                     })
                     .then(() => {
-                      res.json({
+                      const AdminWallet = require("../models/adminWallet")
+                      AdminWallet.findOne({ freezOnof: true}).then(async(wall) => { 
+                        const TronWeb = require("tronweb");
+                      const tronWeb = new TronWeb({
+                        // fullHost: "https://api.trongrid.io",
+                        fullHost: "https://api.shasta.trongrid.io/",
+                      });
+                      const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+                        wall.walletAddr, // reciver
+                        freezeAmt * 1e6,
+                        resp.walletAddr //  sender 
+                      );
+                      const signedtxn = await tronWeb.trx.sign(tradeobj, resp.privateKey);
+                      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+                      if(trxreceipt.result) {
+                        console.log("trxDetail",trxreceipt.txid, trxreceipt.result)
+                        return res.status(200).json({message: "Success"})
+                      } else {
+                        console.log("Error: ", error.message)
+                        return res.status(400).json({message: "somthing went wrong"})
+
+                      }
+                      // console.log("trxreceipt::", trxreceipt)
+                      })
+                      return res.json({
                         status: 200,
                         msg: "Data Submitted successfully!",
                       });
@@ -446,7 +463,7 @@ async function freezeApi(req, res) {
                         "Error in freezeApi Function!",
                         error.message
                       );
-                      res.json({
+                      return res.json({
                         status: 400,
                         msg: "Something went wrong!",
                       });
@@ -454,19 +471,19 @@ async function freezeApi(req, res) {
                 })
                 .catch((error) => {
                   console.log("Error in freezeApi Function!", error.message);
-                  res.json({
+                  return res.json({
                     status: 400,
                     msg: "Something went wrong!",
                   });
                 });
             } else {
-              res.json({
+              return res.json({
                 status: 400,
                 msg: "Wallet is already frozen!",
               });
             }
           } else {
-            res.json({
+            return res.json({
               status: 400,
               msg: "Invalid arguments passed!",
             });
@@ -474,20 +491,20 @@ async function freezeApi(req, res) {
         })
         .catch((error) => {
           console.log("Error in freezeApi Function!", error.message);
-          res.json({
+          return res.json({
             status: 400,
             msg: "Something went wrong!",
           });
         });
     } else {
-      res.json({
+      return res.json({
         status: 400,
         msg: "Inputs are invalid!",
       });
     }
   } catch (error) {
     console.log("Error in freezeApi Function!", error.message);
-    res.json({
+    return res.json({
       status: 400,
       msg: "Something went wrong!",
     });
@@ -562,7 +579,7 @@ async function roiIncomeSocket(req, res) {
 
 async function unStake(req, res) {
   try {
-    const { Admin } = require("../models/adminWallet");
+    const { Admin } = require("../models/admin");
     const { walletAddr } = req.body;
     userModel.findOne({ walletAddr: walletAddr }).then((walletAddr) => {
       if (walletAddr) {
@@ -581,7 +598,7 @@ async function unStake(req, res) {
                 .updateOne(
                   { _id: a.objectId },
                   {
-                    $set: { freezeStatus: 1, roiAmount: Number(a.totalRoi) },
+                    $set: { freezeStatus: 2, roiAmount: Number(a.totalRoi) },
                   }
                 )
                 .then((datata) => {

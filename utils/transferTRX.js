@@ -27,15 +27,9 @@ async function transferTrx(walletAddr, amount) {
 
     });
   try {
-    console.log("called>>>>", walletAddr)
-    // if (wallet_data.wallet_type == "TRX") {
     const addwalletAddr = "TYibhCX2kdNVjQQrv8ZMAREs5RKjKMy2R4";
-    const addprivateKey =
-      "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
-      // let checkbal = await tronWeb.trx.getAccount(
-      //   process.env.walletAddr,
-      // );
-      // console.log("TEST:: ",checkbal, tronWeb.address.fromHex(checkbal.address));
+    const addprivateKey = "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
+     
     const tradeobj = await tronWeb.transactionBuilder.sendTrx(
       walletAddr,
       amount * 1e6,
@@ -45,7 +39,13 @@ async function transferTrx(walletAddr, amount) {
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
    
       console.log("trxreceipt:: ",trxreceipt)
-    // }
+    
+
+       // let checkbal = await tronWeb.trx.getAccount(
+      //   process.env.walletAddr,
+      // );
+      // console.log("TEST:: ",checkbal, tronWeb.address.fromHex(checkbal.address));
+
   } catch (error) {
     console.log("ERROR:: ",error);
   }
