@@ -9,16 +9,17 @@ const io = new Server(8081);
 io.on("connection", (socket) => {
   // send a message to the client
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
-    setInterval(() => {
+    const a = setInterval(() => {
       console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
       });
     }, 1000000);
+    clearInterval(a);
   });
-  socket.on("disconnect",() => {
-    socket.disconnect()
-  })
+  // socket.on("disconnect",() => {
+  //   socket.disconnect()
+  // })
 });
 
 async function test(req, res) {
