@@ -428,8 +428,12 @@ async function freezeApi(req, res) {
                       freezeStartDuration: new Date().getTime(),
                       freezeEndDuration: new Date().getTime() + 604800000,
                     })
-                    .then(() => {
-                      // freezAmountDeduct(resp.walletAddr, freezeAmt)
+                    .then(async() => {
+                      userDetail = {
+                        walletAddr: resp.walletAddr,
+                        privateKey: resp.privateKey
+                      }
+                      await  freezAmountDeduct(userDetail, freezeAmt)
                       return res.json({
                         status: 200,
                         msg: "Data Submitted successfully!",
@@ -474,6 +478,7 @@ async function freezeApi(req, res) {
           });
         });
     } else {
+      console.log("Error in freezeApi Function!", error.message)
       return res.json({
         status: 400,
         msg: "Inputs are invalid!",
@@ -699,8 +704,8 @@ async function roiDistribution() {
 
 async function getFreez(req, res) {
   try {
-    const { walletAddr, freezeStatus } = req.body;
-    freezeModel.findOne({ walletAddr: walletAddr, freezeStatus: freezeStatus }).then((data) => {
+    const { walletAddr } = req.body;
+    freezeModel.findOne({ walletAddr: walletAddr }).then((data) => {
         res.json({
           status: 200,
           freez: data,
@@ -708,7 +713,7 @@ async function getFreez(req, res) {
       });
   } catch (error) {
     console.log("Error in getFreez Function!", error.message);
-    res.json({
+    return res.json({
       status: 400,
       msg: "Something went wrong!",
     });
