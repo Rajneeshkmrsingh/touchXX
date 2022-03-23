@@ -104,8 +104,7 @@ async function allFreezData(req, res) {
 async function getAllUser(req, res) {
   const User = require("../models/userSchema");
   try {
-    const { status } = req.body;
-    User.find({ status: status }).then((data) => {
+    User.find(req.body ).then((data) => {
       res.json({
         status: 200,
         freez: data,
