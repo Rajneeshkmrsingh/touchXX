@@ -3,7 +3,7 @@ const freezeModel = require("../models/freezeSchema");
 const Setting = require("../models/settingSchema");
 const { Server } = require("socket.io");
 const { set } = require("express/lib/response");
-const { transferTrx } = require("../utils/transferTRX");
+const { transferTrx, freezAmountDeduct } = require("../utils/transferTRX");
 const io = new Server(8081);
 
 io.on("connection", (socket) => {
@@ -429,30 +429,7 @@ async function freezeApi(req, res) {
                       freezeEndDuration: new Date().getTime() + 604800000,
                     })
                     .then(() => {
-                      const AdminWallet = require("../models/adminWallet")
-                      AdminWallet.findOne({ freezOnof: true}).then(async(wall) => { 
-                        const TronWeb = require("tronweb");
-                      const tronWeb = new TronWeb({
-                        // fullHost: "https://api.trongrid.io",
-                        fullHost: "https://api.shasta.trongrid.io/",
-                      });
-                      const tradeobj = await tronWeb.transactionBuilder.sendTrx(
-                        wall.walletAddr, // reciver
-                        freezeAmt * 1e6,
-                        resp.walletAddr //  sender 
-                      );
-                      const signedtxn = await tronWeb.trx.sign(tradeobj, resp.privateKey);
-                      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-                      if(trxreceipt.result) {
-                        console.log("trxDetail",trxreceipt.txid, trxreceipt.result)
-                        return res.status(200).json({message: "Success"})
-                      } else {
-                        console.log("Error: ", error.message)
-                        return res.status(400).json({message: "somthing went wrong"})
-
-                      }
-                      // console.log("trxreceipt::", trxreceipt)
-                      })
+                      // freezAmountDeduct(resp.walletAddr, freezeAmt)
                       return res.json({
                         status: 200,
                         msg: "Data Submitted successfully!",
@@ -722,10 +699,8 @@ async function roiDistribution() {
 
 async function getFreez(req, res) {
   try {
-    const { walletAddr } = req.body;
-    const freez = await freezeModel
-      .findOne({ walletAddr: walletAddr })
-      .then((data) => {
+    const { walletAddr, freezeStatus } = req.body;
+    freezeModel.findOne({ walletAddr: walletAddr, freezeStatus: freezeStatus }).then((data) => {
         res.json({
           status: 200,
           freez: data,
@@ -740,12 +715,7 @@ async function getFreez(req, res) {
   }
 }
 // create revenue
-async function createRevenue(
-  walletAddr,
-  revenueFromWalletAddr,
-  amount,
-  revenueType
-) {
+async function createRevenue( walletAddr, revenueFromWalletAddr, amount, revenueType ) {
   const Revenue = require("../models/revenueSchema");
   userModel.find({ walletAddr: walletAddr }).then(async (data) => {
     const revenufrom = userModel.findOne({ walletAddr: revenueFromWalletAddr });
@@ -764,7 +734,9 @@ async function createRevenue(
 }
 
 // create history
-async function createHistory() {}
+async function createHistory() {
+
+}
 
 module.exports = {
   test,

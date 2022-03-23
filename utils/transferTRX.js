@@ -21,38 +21,70 @@ async function createTRXAddress() {
 async function transferTrx(walletAddr, amount) {
   console.log("TRXXXXXX");
   const TronWeb = require("tronweb");
-    const tronWeb = new TronWeb({
-      // fullHost: "https://api.trongrid.io",
-      fullHost: "https://api.shasta.trongrid.io/",
-
-    });
+  const tronWeb = new TronWeb({
+    // fullHost: "https://api.trongrid.io",
+    fullHost: "https://api.shasta.trongrid.io/",
+  });
   try {
     const addwalletAddr = "TYibhCX2kdNVjQQrv8ZMAREs5RKjKMy2R4";
-    const addprivateKey = "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
-     
+    const addprivateKey =
+      "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
+
     const tradeobj = await tronWeb.transactionBuilder.sendTrx(
       walletAddr,
       amount * 1e6,
-      process.env.walletAddr //  admin walletAddr 
+      process.env.walletAddr //  admin walletAddr
     );
     const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-   
-      console.log("trxreceipt:: ",trxreceipt)
-    
 
-       // let checkbal = await tronWeb.trx.getAccount(
-      //   process.env.walletAddr,
-      // );
-      // console.log("TEST:: ",checkbal, tronWeb.address.fromHex(checkbal.address));
+    console.log("trxreceipt:: ", trxreceipt);
 
+    // let checkbal = await tronWeb.trx.getAccount(
+    //   process.env.walletAddr,
+    // );
+    // console.log("TEST:: ",checkbal, tronWeb.address.fromHex(checkbal.address));
   } catch (error) {
-    console.log("ERROR:: ",error);
+    console.log("ERROR:: ", error);
+  }
+}
+
+async function freezAmountDeduct(userfreezWall, freezeAmt) {
+  try {
+    const AdminWallet = require("../models/adminWallet");
+    AdminWallet.findOne({ freezOnof: true }).then(async (wall) => {
+      const TronWeb = require("tronweb");
+      const tronWeb = new TronWeb({
+        // fullHost: "https://api.trongrid.io",
+        fullHost: "https://api.shasta.trongrid.io/",
+      });
+      const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+        wall.walletAddr, // reciver
+        freezeAmt * 1e6,
+        userfreezWall.walletAddr //  sender
+      );
+      const signedtxn = await tronWeb.trx.sign(
+        tradeobj,
+        userfreezWall.privateKey
+      );
+      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+      if (trxreceipt.result) {
+        console.log("trxDetail", trxreceipt.txid, trxreceipt.result);
+         return trxreceipt.txid
+      } else {
+        console.log("Error: ", error.message);
+        return false
+      }
+      // console.log("trxreceipt::", trxreceipt)
+    });
+  } catch (error) {
+    console.log("Error From: freezAmountDeduct ", error.message);
   }
 }
 
 module.exports = {
   createTRXAddress,
+  freezAmountDeduct,
   transferTrx,
 };
 
