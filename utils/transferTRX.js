@@ -50,10 +50,10 @@ async function transferTrx(walletAddr, amount) {
 }
 
 async function freezAmountDeduct(userfreezWall, freezeAmt) {
-  console.log("DDDD",userfreezWall, freezeAmt)
-    const AdminWallet = require("../models/adminWallet");
-    AdminWallet.findOne({ freezOnof: true }).then(async (wall) => {
-      console.log("wall::",wall)
+  const AdminWallet = require("../models/adminWallet");
+  AdminWallet.findOne({ freezOnof: true })
+    .then(async (wall) => {
+      console.log("wall::", wall);
       const TronWeb = require("tronweb");
       const tronWeb = new TronWeb({
         // fullHost: "https://api.trongrid.io",
@@ -68,17 +68,15 @@ async function freezAmountDeduct(userfreezWall, freezeAmt) {
         tradeobj,
         userfreezWall.privateKey
       );
-      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-     
+      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn).then(async(trxreceipt) => {
         console.log("trxDetail", trxreceipt.txid, trxreceipt.result);
-      
-      // console.log("trxreceipt::", trxreceipt)
-    }).catch((error) => {
-      console.log("Error in freezeApi Function!", error);
+        return trxreceipt;
+      })
     })
-
-    }
- 
+    .catch((error) => {
+      console.log("Error in freezeApi Function!", error);
+    });
+}
 
 module.exports = {
   createTRXAddress,
@@ -109,3 +107,20 @@ module.exports = {
 //       signedtxn
 // );
 // console.log('- Output:', receipt, '\n');
+
+
+ // if(trxreceipt.result) {
+      //   const transDetails = {
+      //     walletAddr: wall.walletAddr,
+      //     revenueFromWalletAddr: userfreezWall.walletAddr,
+      //     amount: freezeAmt,
+      //     revenueType: "freezRevenue",
+      //     transactionAdd: trxreceipt.txid
+      //   };
+      //   console.log("transDetails::", transDetails)
+      //   return transDetails;
+      // } else {
+      //   return trxreceipt.result
+      // }
+    
+      // console.log("trxreceipt::", trxreceipt)

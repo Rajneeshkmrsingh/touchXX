@@ -8,9 +8,9 @@ const io = new Server(8081);
 
 io.on("connection", (socket) => {
   // send a message to the client
-  let a ;
+  let a;
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
-    a =setInterval(() => {
+    a = setInterval(() => {
       console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
         socket.emit("roiIncomeSocket", a);
@@ -18,10 +18,10 @@ io.on("connection", (socket) => {
     }, 100000);
   });
 
-  socket.on("disconnect",() => {
+  socket.on("disconnect", () => {
     socket.disconnect();
     clearInterval(a);
-  })
+  });
 });
 
 async function test(req, res) {
@@ -44,16 +44,22 @@ function roiIncomeSockets(walletAddr) {
         .findOne({ walletAddr: walletAddr, freezeStatus: 1 })
         .then((freezeData) => {
           if (freezeData) {
-            let perSecondRoi =(freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-            let refferalperSecondRoi =(freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+            let perSecondRoi =
+              (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+            let refferalperSecondRoi =
+              (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
             if (date < freezeData.freezeEndDuration) {
-              let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime =
+                date / 1000 - freezeData.freezeStartDuration / 1000;
               let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
-              let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
-              let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
+              let parentRemainTime =
+                freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+              let diffRemainTime =
+                freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
-              let parentTotalRemaningRoi = refferalperSecondRoi * parentRemainTime; // parrent
+              let parentTotalRemaningRoi =
+                refferalperSecondRoi * parentRemainTime; // parrent
               let totalRemainRoi = perSecondRoi * diffRemainTime;
               // console.log("Freeze111 :: ", perSecondRoi, totalRoi);
 
@@ -69,7 +75,9 @@ function roiIncomeSockets(walletAddr) {
                 parentTotalRemaningRoi: parentTotalRemaningRoi,
               });
             } else {
-              let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime =
+                freezeData.freezeEndDuration / 1000 -
+                freezeData.freezeStartDuration / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * diffTime;
               freezeModel.updateOne(
@@ -401,11 +409,13 @@ async function getTeam(req, res) {
 }
 
 async function freezeApi(req, res) {
-  const adminWallet = require("../models/adminWallet")
+  const adminWallet = require("../models/adminWallet");
   try {
     const { freezeAmt, walletAddr } = req.body;
     if (freezeAmt != undefined && walletAddr != undefined) {
-      userModel.findOne({ walletAddr: walletAddr }).then((resp) => {
+      userModel
+        .findOne({ walletAddr: walletAddr })
+        .then((resp) => {
           if (resp) {
             if (resp.status == 1) {
               userModel
@@ -414,41 +424,44 @@ async function freezeApi(req, res) {
                   { $set: { violations: 3 } }
                 )
                 .then(() => {
-                  freezeModel
-                    .create({
-                      uniqueId: resp.uniqueId,
-                      walletName: resp.walletName,
-                      walletAddr: resp.walletAddr,
-                      referrerId: resp.referrerId,
-                      referrerAddr: resp.referrerAddr,
-                      freezeAmt: Number(freezeAmt),
-                      totalCountRoi: 7,
-                      parentHarvst: new Date().getTime(),
-                      userHarvst: new Date().getTime(),
-                      freezeStartDuration: new Date().getTime(),
-                      freezeEndDuration: new Date().getTime() + 604800000,
-                    })
-                    .then(async() => {
-                      userDetail = {
+                  userDetail = {
+                    walletAddr: resp.walletAddr,
+                    privateKey: resp.privateKey,
+                  };
+                  freezAmountDeduct(userDetail, freezeAmt).then(async(trx) => {
+                    console.log("trx:: ", trx);
+                    // createRevenue( walletAddr, revenueFromWalletAddr, amount, revenueType )
+                    freezeModel
+                      .create({
+                        uniqueId: resp.uniqueId,
+                        walletName: resp.walletName,
                         walletAddr: resp.walletAddr,
-                        privateKey: resp.privateKey
-                      }
-                      await  freezAmountDeduct(userDetail, freezeAmt)
-                      return res.json({
-                        status: 200,
-                        msg: "Data Submitted successfully!",
+                        referrerId: resp.referrerId,
+                        referrerAddr: resp.referrerAddr,
+                        freezeAmt: Number(freezeAmt),
+                        totalCountRoi: 7,
+                        parentHarvst: new Date().getTime(),
+                        userHarvst: new Date().getTime(),
+                        freezeStartDuration: new Date().getTime(),
+                        freezeEndDuration: new Date().getTime() + 604800000,
+                      })
+                      .then(() => {
+                        return res.json({
+                          status: 200,
+                          msg: "Data Submitted successfully!",
+                        });
+                      })
+                      .catch((error) => {
+                        console.log(
+                          "Error in freezeApi Function!",
+                          error.message
+                        );
+                        return res.json({
+                          status: 400,
+                          msg: "Something went wrong!",
+                        });
                       });
-                    })
-                    .catch((error) => {
-                      console.log(
-                        "Error in freezeApi Function!",
-                        error.message
-                      );
-                      return res.json({
-                        status: 400,
-                        msg: "Something went wrong!",
-                      });
-                    });
+                  });
                 })
                 .catch((error) => {
                   console.log("Error in freezeApi Function!", error.message);
@@ -478,7 +491,7 @@ async function freezeApi(req, res) {
           });
         });
     } else {
-      console.log("Error in freezeApi Function!", error.message)
+      console.log("Error in freezeApi Function!", error.message);
       return res.json({
         status: 400,
         msg: "Inputs are invalid!",
@@ -517,11 +530,10 @@ async function roiIncomeSocket(req, res) {
           //   (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
           // let totalReferralRoi = refferalperSecondRoi * diffTime;
           let perSecondRoi =
-          (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-        let refferalperSecondRoi =
-          (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
-          let diffTime =
-            date / 1000 - freezeData.freezeStartDuration / 1000;
+            (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+          let refferalperSecondRoi =
+            (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+          let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
           let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
           let parentRemainTime =
             freezeData.freezeEndDuration / 1000 - date / 1000; // parent
@@ -706,11 +718,11 @@ async function getFreez(req, res) {
   try {
     const { walletAddr } = req.body;
     freezeModel.findOne({ walletAddr: walletAddr }).then((data) => {
-        res.json({
-          status: 200,
-          freez: data,
-        });
+      res.json({
+        status: 200,
+        freez: data,
       });
+    });
   } catch (error) {
     console.log("Error in getFreez Function!", error.message);
     return res.json({
@@ -739,9 +751,7 @@ async function createRevenue( walletAddr, revenueFromWalletAddr, amount, revenue
 }
 
 // create history
-async function createHistory() {
-
-}
+async function createHistory() {}
 
 module.exports = {
   test,
