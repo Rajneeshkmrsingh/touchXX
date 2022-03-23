@@ -430,7 +430,6 @@ async function freezeApi(req, res) {
                   };
                   freezAmountDeduct(userDetail, freezeAmt).then(async(trx) => {
                     console.log("trx:: ", trx);
-                    // createRevenue( walletAddr, revenueFromWalletAddr, amount, revenueType )
                     freezeModel
                       .create({
                         uniqueId: resp.uniqueId,
@@ -731,27 +730,8 @@ async function getFreez(req, res) {
     });
   }
 }
-// create revenue
-async function createRevenue( walletAddr, revenueFromWalletAddr, amount, revenueType ) {
-  const Revenue = require("../models/revenueSchema");
-  userModel.find({ walletAddr: walletAddr }).then(async (data) => {
-    const revenufrom = userModel.findOne({ walletAddr: revenueFromWalletAddr });
-    Revenue.create({
-      uniqueId: data.uniqueId,
-      walletAddr: data.walletAddr,
-      revenueFromUniqueId: revenufrom.uniqueId,
-      revenueFromWalletAddr: revenufrom.walletAddr,
-      revenueAmt: amount,
-      revenueType: revenueType,
-    }).then((error, data) => {
-      if (error) console.log(error);
-      if (data) console.log("revenuCreated");
-    });
-  });
-}
 
-// create history
-async function createHistory() {}
+
 
 module.exports = {
   test,
@@ -766,6 +746,5 @@ module.exports = {
   roiIncomeSockets,
   setting,
   getFreez,
-  createRevenue,
   referalHarvest,
 };
