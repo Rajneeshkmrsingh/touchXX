@@ -31,3 +31,14 @@ user.post("/referalHarvest", referalHarvest)
 
 
 module.exports = user;
+
+
+
+
+
+
+
+
+
+
+// https://k6.io/docs/javascript-api/k6-ws/socket/socket-setinterval-callback-interval/

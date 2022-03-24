@@ -123,13 +123,13 @@ async function getAllUser(req, res) {
 async function addWallet(req, res) {
   const Admin = require("../models/adminWallet");
   try {
-    const { walletAddr, privateKey, name } = req.body;
+    const { walletAddr, privateKey, walletType } = req.body;
     const wallet = await Admin.findOne({ walletAddr: walletAddr });
     if (wallet) {
-      return res.status(400).json({ message: "Wallet already exiest" });
+      return res.status(400).json({ message: "Wallet already exeist" });
     }
     const createWall = new Admin({
-      name,
+      walletType,
       walletAddr,
       privateKey,
     });
