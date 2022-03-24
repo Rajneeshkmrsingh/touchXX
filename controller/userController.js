@@ -7,15 +7,16 @@ const { transferTrx, freezAmountDeduct } = require("../utils/transferTRX");
 const io = new Server(8081);
 
 io.on("connection", (socket) => {
-  // send a message to the client
   let a;
+  io.sockets[other_socket_id].status
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     a = setInterval(() => {
       console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
+        socket.sendBuffer = [];
         socket.emit("roiIncomeSocket", a);
       });
-    }, 100000);
+    }, 1000);
   });
 
   socket.on("disconnect", () => {
@@ -370,35 +371,45 @@ async function insertUserApi(req, res) {
 async function getTeam(req, res) {
   try {
     const { walletAddr } = req.body;
-    freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
-      if (data && data.length > 0) {
-        return res.status(200).json({ msg: "All record", team: data });
-      } else {
-        return res.status(200).json({ msg: "refferls not found", team: data });
-      }
-    });
-    // userModel.aggregate([
-    //   { "$match":  {referrerAddr: walletAddr} },
-    //   {
-    //       $lookup: {
-    //           from: "user",
-    //           localField: "referrerAddr",
-    //           foreignField: "referrerAddr",
-    //           as: "freeze"
-    //       }
-    //   },
-    //   {
-    //     $project: {
-    //       referrerAddr: 1,
-    //       "freeze.walletAddr": 1,
-    //       "freeze.freezeAmt": 1,
-    //       "freeze.freezeStartDuration": 1,
-    //       "freeze.freezeEndDuration": 1,
-    //       "freeze.freezeStatus": 1,
-
-    //     }
+    // freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
+    //   if (data && data.length > 0) {
+    //     return res.status(200).json({ msg: "All record", team: data });
+    //   } else {
+    //     return res.status(200).json({ msg: "refferls not found", team: data });
     //   }
-    // ])
+    // });
+    const result = await userModel.aggregate([
+      { $match: { referrerAddr: walletAddr } },
+      {
+        $lookup: {
+          from: "freeze",
+          localField: "referrerAddr",
+          foreignField: "referrerAddr",
+          as: "freeze",
+        },
+      },
+      // {
+      //   $group: {
+      //     _id: "$referrerAddr",
+      //     referrerAddr: { $first: "$referrerAddr" },
+      //   },
+      // },
+      {
+        $project: {
+          referrerAddr: 1,
+          "freeze.walletAddr": 1,
+          "freeze.freeze": 1,
+          "freeze.freezeStartDuration": 1,
+          "freeze.freezeEndDuration": 1,
+          "freeze.freezeStatus": 1,
+        },
+      },
+    ]);
+    res.json({
+      status: 200,
+      msg: "Result",
+      result: result,
+    });
   } catch (error) {
     console.log("error:: ", error);
     res.json({
@@ -428,7 +439,7 @@ async function freezeApi(req, res) {
                     walletAddr: resp.walletAddr,
                     privateKey: resp.privateKey,
                   };
-                  freezAmountDeduct(userDetail, freezeAmt).then(async(trx) => {
+                  freezAmountDeduct(userDetail, freezeAmt).then(async (trx) => {
                     console.log("trx:: ", trx);
                     freezeModel
                       .create({
@@ -730,8 +741,6 @@ async function getFreez(req, res) {
     });
   }
 }
-
-
 
 module.exports = {
   test,
