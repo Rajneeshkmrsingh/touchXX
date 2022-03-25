@@ -6,23 +6,43 @@ const { set } = require("express/lib/response");
 const { transferTrx, freezAmountDeduct } = require("../utils/transferTRX");
 const io = new Server(8081);
 
+let ai = { };
+let a 
 io.on("connection", (socket) => {
-  let a;
-  io.sockets[other_socket_id].status
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     a = setInterval(() => {
-      console.log("Wallet Addr :: ", walletAddr);
       roiIncomeSockets(walletAddr).then((a) => {
-        socket.sendBuffer = [];
+      console.log("Wallet Addr :: ", walletAddr);
+
         socket.emit("roiIncomeSocket", a);
       });
     }, 1000);
+    // console.log("Wall:", walletAddr, socket.id)
+    // if(ai[walletAddr]){
+      
+    //   clearInterval(ai);
+    //   clearInterval(a)
+    //   delete ai[walletAddr]
+    //   console.log("clear interval");
+
+    // } else {
+    //     a = setInterval(() => {
+    //     roiIncomeSockets(walletAddr).then((a) => {
+    //     console.log("Wallet Addr :: ", walletAddr);
+
+    //       socket.sendBuffer = [];
+    //       socket.emit("roiIncomeSocket", a);
+    //     });
+    //   }, 1000);
+    //   ai[walletAddr] = a;
+    //   //console.log("Ai", ai)
+    // }
   });
 
-  socket.on("disconnect", () => {
-    socket.disconnect();
-    clearInterval(a);
-  });
+  // socket.on("disconnect", () => {
+  //   socket.disconnect();
+  //   clearInterval(a);
+  // });
 });
 
 async function test(req, res) {
@@ -45,22 +65,16 @@ function roiIncomeSockets(walletAddr) {
         .findOne({ walletAddr: walletAddr, freezeStatus: 1 })
         .then((freezeData) => {
           if (freezeData) {
-            let perSecondRoi =
-              (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-            let refferalperSecondRoi =
-              (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+            let perSecondRoi = (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+            let refferalperSecondRoi = (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
             if (date < freezeData.freezeEndDuration) {
-              let diffTime =
-                date / 1000 - freezeData.freezeStartDuration / 1000;
+              let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
               let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
-              let parentRemainTime =
-                freezeData.freezeEndDuration / 1000 - date / 1000; // parent
-              let diffRemainTime =
-                freezeData.freezeEndDuration / 1000 - date / 1000;
+              let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+              let diffRemainTime =  freezeData.freezeEndDuration / 1000 - date / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
-              let parentTotalRemaningRoi =
-                refferalperSecondRoi * parentRemainTime; // parrent
+              let parentTotalRemaningRoi = refferalperSecondRoi * parentRemainTime; // parrent
               let totalRemainRoi = perSecondRoi * diffRemainTime;
               // console.log("Freeze111 :: ", perSecondRoi, totalRoi);
 
@@ -74,11 +88,10 @@ function roiIncomeSockets(walletAddr) {
                 totalRoi: totalRoi,
                 refferalperSecondRoi: refferalperSecondRoi,
                 parentTotalRemaningRoi: parentTotalRemaningRoi,
+                kk: "kk"
               });
             } else {
-              let diffTime =
-                freezeData.freezeEndDuration / 1000 -
-                freezeData.freezeStartDuration / 1000;
+              let diffTime = freezeData.freezeEndDuration / 1000 - freezeData.freezeStartDuration / 1000;
               let totalRoi = perSecondRoi * diffTime;
               let totalRefcomision = refferalperSecondRoi * diffTime;
               freezeModel.updateOne(
@@ -100,13 +113,10 @@ function roiIncomeSockets(walletAddr) {
                 totalRoi: totalRoi,
                 totalRefcomision: totalRefcomision,
                 refferalperSecondRoi: refferalperSecondRoi,
+                PP: "PP"
+
               });
             }
-          } else {
-            resolve({
-              status: 400,
-              msg: "No Data Found!",
-            });
           }
         })
         .catch((error) => {
@@ -727,7 +737,7 @@ async function roiDistribution() {
 async function getFreez(req, res) {
   try {
     const { walletAddr } = req.body;
-    freezeModel.findOne({ walletAddr: walletAddr }).then((data) => {
+    freezeModel.findOne({ walletAddr: walletAddr,freezeStatus:1 }).then((data) => {
       res.json({
         status: 200,
         freez: data,
