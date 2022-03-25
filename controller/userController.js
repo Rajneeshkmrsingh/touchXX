@@ -407,6 +407,7 @@ async function getTeam(req, res) {
       {
         $project: {
           referrerAddr: 1,
+          "freeze.walletName": 1,
           "freeze.walletAddr": 1,
           "freeze.freeze": 1,
           "freeze.freezeStartDuration": 1,
