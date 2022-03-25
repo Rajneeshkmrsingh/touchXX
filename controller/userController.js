@@ -9,12 +9,18 @@ const io = new Server(8081);
 let ai = { };
 let a 
 io.on("connection", (socket) => {
+
+  socket.on('disconnect', function () {
+    console.log('Socket disconnected: ' + socket.id)
+ });
+
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     a = setInterval(() => {
       roiIncomeSockets(walletAddr).then((a) => {
         console.log("AAAA", a.walletAddr, a.perSecondRoi)
         socket.emit("roiIncomeSocket", a);
       });
+    });
     }, 1000);
     // console.log("Wall:", walletAddr, socket.id)
     // if(ai[walletAddr]){
@@ -36,7 +42,7 @@ io.on("connection", (socket) => {
     //   ai[walletAddr] = a;
     //   //console.log("Ai", ai)
     // }
-  });
+
 
   socket.on("disconnect", () => {
     socket.disconnect();
@@ -381,41 +387,41 @@ async function insertUserApi(req, res) {
 async function getTeam(req, res) {
   try {
     const { walletAddr } = req.body;
-    // freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
-    //   if (data && data.length > 0) {
-    //     return res.status(200).json({ msg: "All record", team: data });
-    //   } else {
-    //     return res.status(200).json({ msg: "refferls not found", team: data });
-    //   }
-    // });
-    const result = await userModel.aggregate([
-      { $match: { referrerAddr: walletAddr } },
-      {
-        $lookup: {
-          from: "freeze",
-          localField: "referrerAddr",
-          foreignField: "referrerAddr",
-          as: "freeze",
-        },
-      },
-      // {
-      //   $group: {
-      //     _id: "$referrerAddr",
-      //     referrerAddr: { $first: "$referrerAddr" },
-      //   },
-      // },
-      {
-        $project: {
-          referrerAddr: 1,
-          "freeze.walletName": 1,
-          "freeze.walletAddr": 1,
-          "freeze.freeze": 1,
-          "freeze.freezeStartDuration": 1,
-          "freeze.freezeEndDuration": 1,
-          "freeze.freezeStatus": 1,
-        },
-      },
-    ]);
+    freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
+      if (data && data.length > 0) {
+        return res.status(200).json({ msg: "All record", team: data });
+      } else {
+        return res.status(200).json({ msg: "refferls not found", team: data });
+      }
+    });
+    // const result = await userModel.aggregate([
+    //   { $match: { referrerAddr: walletAddr } },
+    //   {
+    //     $lookup: {
+    //       from: "freeze",
+    //       localField: "referrerAddr",
+    //       foreignField: "referrerAddr",
+    //       as: "freeze",
+    //     },
+    //   },
+    //   // {
+    //   //   $group: {
+    //   //     _id: "$referrerAddr",
+    //   //     referrerAddr: { $first: "$referrerAddr" },
+    //   //   },
+    //   // },
+    //   {
+    //     $project: {
+    //       referrerAddr: 1,
+    //       "freeze.walletName": 1,
+    //       "freeze.walletAddr": 1,
+    //       "freeze.freeze": 1,
+    //       "freeze.freezeStartDuration": 1,
+    //       "freeze.freezeEndDuration": 1,
+    //       "freeze.freezeStatus": 1,
+    //     },
+    //   },
+    // ]);
     res.json({
       status: 200,
       msg: "Result",
