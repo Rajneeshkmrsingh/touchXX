@@ -12,8 +12,7 @@ io.on("connection", (socket) => {
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     a = setInterval(() => {
       roiIncomeSockets(walletAddr).then((a) => {
-      console.log("Wallet Addr :: ", walletAddr);
-
+        console.log("AAAA", a.walletAddr, a.perSecondRoi)
         socket.emit("roiIncomeSocket", a);
       });
     }, 1000);
@@ -39,10 +38,10 @@ io.on("connection", (socket) => {
     // }
   });
 
-  // socket.on("disconnect", () => {
-  //   socket.disconnect();
-  //   clearInterval(a);
-  // });
+  socket.on("disconnect", () => {
+    socket.disconnect();
+    clearInterval(a);
+  });
 });
 
 async function test(req, res) {
@@ -80,6 +79,7 @@ function roiIncomeSockets(walletAddr) {
 
               resolve({
                 status: 200,
+                walletAddr: freezeData.walletAddr,
                 freezeAmt: freezeData.freezeAmt,
                 objectId: freezeData._id,
                 perSecondRoi: perSecondRoi,
