@@ -422,11 +422,11 @@ async function getTeam(req, res) {
     //     },
     //   },
     // ]);
-    res.json({
-      status: 200,
-      msg: "Result",
-      result: result,
-    });
+    // res.json({
+    //   status: 200,
+    //   msg: "Result",
+    //   result: result,
+    // });
   } catch (error) {
     console.log("error:: ", error);
     res.json({
