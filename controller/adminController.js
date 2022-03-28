@@ -85,10 +85,11 @@ async function signin(req, res) {
 async function allFreezData(req, res) {
   const Freez = require("../models/freezeSchema");
   try {
-    const { freezeStatus } = req.body;
-    await Freez.find({ $or: [ { freezeStatus: freezeStatus }, { } ] }).then((data) => {
+    await Freez.find(req.body).then((data) => {
       res.json({
         status: 200,
+        length: data.length,
+
         freez: data,
       });
     });

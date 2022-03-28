@@ -748,7 +748,7 @@ async function roiDistribution() {
 async function getFreez(req, res) {
   try {
     const { walletAddr } = req.body;
-    freezeModel.findOne({ walletAddr: walletAddr,freezeStatus:1 }).then((data) => {
+    freezeModel.findOne({ walletAddr: walletAddr, freezeStatus:1 }).then((data) => {
       res.json({
         status: 200,
         freez: data,
