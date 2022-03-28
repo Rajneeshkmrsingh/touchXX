@@ -560,16 +560,12 @@ async function roiIncomeSocket(req, res) {
           // let refferalperSecondRoi =
           //   (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
           // let totalReferralRoi = refferalperSecondRoi * diffTime;
-          let perSecondRoi =
-            (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-          let refferalperSecondRoi =
-            (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
+          let perSecondRoi = (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
+          let refferalperSecondRoi = (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
           let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
           let parentdiffTime = date / 1000 - freezeData.parentHarvst / 1000; // parrent
-          let parentRemainTime =
-            freezeData.freezeEndDuration / 1000 - date / 1000; // parent
-          let diffRemainTime =
-            freezeData.freezeEndDuration / 1000 - date / 1000;
+          let parentRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000; // parent
+          let diffRemainTime = freezeData.freezeEndDuration / 1000 - date / 1000;
           let totalRoi = perSecondRoi * diffTime;
           let totalRefcomision = refferalperSecondRoi * parentdiffTime; // parent
           let parentTotalRemaningRoi = refferalperSecondRoi * parentRemainTime; // parrent
@@ -670,22 +666,22 @@ async function referalHarvest(req, res) {
               Number(freezeData.freezeAmt) + Number(a.totalRoi)
             );
             // update freeze Amt
-            // freezeModel
-            //   .updateOne(
-            //     { _id: a.objectId },
-            //     {
-            //       $set: {
-            //         parentHarvst: Date.now(),
-            //         parentroiAmount: Number(a.totalRefcomision),
-            //       },
-            //     }
-            //   )
-            //   .then((datata) => {
-            //     res.json({
-            //       status: 200,
-            //       msg: "Successfully updated!",
-            //     });
-            //   });
+            freezeModel
+              .updateOne(
+                { _id: a.objectId },
+                {
+                  $set: {
+                    parentHarvst: Date.now(),
+                    parentroiAmount: Number(a.totalRefcomision),
+                  },
+                }
+              )
+              .then((datata) => {
+                res.json({
+                  status: 200,
+                  msg: "Successfully updated!",
+                });
+              });
           });
         });
       } else {
