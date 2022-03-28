@@ -86,7 +86,7 @@ async function allFreezData(req, res) {
   const Freez = require("../models/freezeSchema");
   try {
     const { freezeStatus } = req.body;
-    await Freez.find({ freezeStatus: freezeStatus }).then((data) => {
+    await Freez.find({ $or: [ { freezeStatus: freezeStatus }, { } ] }).then((data) => {
       res.json({
         status: 200,
         freez: data,
@@ -181,7 +181,7 @@ async function adminWalletConfig(req, res) {
     const { configType, status, walletAddr } = req.body;
     console.log(req.body)
     switch (configType) {
-      case "freezOnof":
+      case "hot_Wallet":
         await Admin.updateOne(
           { walletAddr: walletAddr },
           {
@@ -193,7 +193,7 @@ async function adminWalletConfig(req, res) {
           return res.status(200).json({ message: "success" });
         })
         break;
-      case "withdrawlOnof":
+      case "cold_wallet":
         Admin.updateOne(
           { walletAddr: walletAddr },
           {

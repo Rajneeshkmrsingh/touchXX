@@ -10,9 +10,12 @@ let ai = { };
 let a 
 io.on("connection", (socket) => {
 
-  socket.on('disconnect', function () {
-    console.log('Socket disconnected: ' + socket.id)
- });
+//   socket.on('disconnect', function () {
+//     console.log('Socket disconnected: ' + socket.id)
+//  });
+//  socket.on('connect', function () {
+//   console.log('Socket connected: ' + socket.id)
+// });
 
   socket.on("recieveWalletAddrSocket", (walletAddr) => {
     a = setInterval(() => {
@@ -387,8 +390,9 @@ async function insertUserApi(req, res) {
 async function getTeam(req, res) {
   try {
     const { walletAddr } = req.body;
-    freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
+    await freezeModel.find({ referrerAddr: walletAddr }).then((data) => {
       if (data && data.length > 0) {
+        console.log(data)
         return res.status(200).json({ msg: "All record", team: data });
       } else {
         return res.status(200).json({ msg: "refferls not found", team: data });
@@ -463,7 +467,7 @@ async function freezeApi(req, res) {
                         uniqueId: resp.uniqueId,
                         walletName: resp.walletName,
                         walletAddr: resp.walletAddr,
-                        referrerId: resp.referrerId,
+                        referrerId: resp.referrerId?resp.referrerId:"self",
                         referrerAddr: resp.referrerAddr,
                         freezeAmt: Number(freezeAmt),
                         totalCountRoi: 7,
