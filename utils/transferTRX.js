@@ -33,8 +33,20 @@ async function transferTrx(walletAddr, amount) {
     const tradeobj = await tronWeb.transactionBuilder.sendTrx(
       walletAddr,
       amount * 1e6,
+      // wall.walletAddr //  admin walletAddr
       process.env.walletAddr //  admin walletAddr
     );
+    // AdminWallet.findOne({ freezOnof: true, walletType: "hot_Wallet" })
+    // .then(async (wall) => {
+    //   const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+    //     walletAddr,
+    //     amount * 1e6,
+    //     wall.walletAddr //  admin walletAddr
+    //   );
+
+    //   const signedtxn = await tronWeb.trx.sign(tradeobj, wall.privateKey);
+    //   const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+    // })
     const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
     const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
 
