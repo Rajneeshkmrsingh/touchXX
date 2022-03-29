@@ -475,7 +475,7 @@ async function freezeApi(req, res) {
                         walletName: resp.walletName,
                         walletAddr: resp.walletAddr,
                         referrerId: resp.referrerId ? resp.referrerId : "self",
-                        referrerAddr: resp.referrerAddr,
+                        referrerAddr: resp.referrerAddr ? resp.referrerAddr: "self",
                         freezeAmt: Number(freezeAmt),
                         totalCountRoi: 7,
                         parentHarvst: new Date().getTime(),

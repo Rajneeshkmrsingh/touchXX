@@ -180,7 +180,6 @@ async function adminWalletConfig(req, res) {
   const Admin = require("../models/adminWallet");
   try {
     const { walletType, status, walletAddr } = req.body;
-    console.log(req.body)
     switch (walletType) {
       case "cold_wallet":
         await Admin.updateOne(
@@ -221,6 +220,7 @@ async function adminWalletConfig(req, res) {
     // ).then((d) => {
     //   return res.status(200).json({ message: "success" });
     // });
+    // res.status(200).json({ msg: "success" });
   } catch (error) {
     res.status(400).json({ msg: "somthing went wrong" });
   }
