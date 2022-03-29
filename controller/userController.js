@@ -74,7 +74,6 @@ function roiIncomeSockets(walletAddr) {
       freezeModel
         .findOne({ walletAddr: walletAddr, freezeStatus: 1 })
         .then((freezeData) => {
-          const allData =  freezeModel.findOne({ walletAddr: walletAddr})
           if (freezeData) {
             let perSecondRoi =
               (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
@@ -105,7 +104,6 @@ function roiIncomeSockets(walletAddr) {
                 totalRoi: totalRoi,
                 refferalperSecondRoi: refferalperSecondRoi,
                 parentTotalRemaningRoi: parentTotalRemaningRoi,
-                allData: allData,
               });
             } else {
               let diffTime =
@@ -132,7 +130,6 @@ function roiIncomeSockets(walletAddr) {
                 totalRoi: totalRoi,
                 totalRefcomision: totalRefcomision,
                 refferalperSecondRoi: refferalperSecondRoi,
-                allData: allData,
 
               });
             }
@@ -561,6 +558,7 @@ async function roiIncomeSocket(req, res) {
         })
         .then((freezeData) => {
           if (freezeData != null) {
+          const allData =  freezeModel.findOne({ walletAddr: walletAddr})
             // let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
             // let diffRemainTime =
             //   freezeData.freezeEndDuration / 1000 - date / 1000;
@@ -602,6 +600,7 @@ async function roiIncomeSocket(req, res) {
               totalRoi: totalRoi,
               refferalperSecondRoi: refferalperSecondRoi,
               parentTotalRemaningRoi: parentTotalRemaningRoi,
+              allData: allData
             });
           } else {
             res.json({
