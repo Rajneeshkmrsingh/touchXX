@@ -81,6 +81,10 @@ async function freezAmountDeduct(userfreezWall, freezeAmt) {
         userfreezWall.privateKey
       );
       const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+      if(trxreceipt.result == true){
+        const revenueType = "Freez"
+        createRevenue(wall.walletAddr,  userfreezWall.walletAddr, freezeAmt, revenueType )
+      }
       console.log("trxreceipt: ", trxreceipt.txid, trxreceipt.result)
         // console.log("Detail: ",trxreceipt)
       return trxreceipt
