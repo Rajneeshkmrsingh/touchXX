@@ -556,19 +556,20 @@ async function roiIncomeSocket(req, res) {
           freezeStartDuration: { $lte: date },
           freezeEndDuration: { $gte: date },
         })
-        .then((freezeData) => {
+        .then(async(freezeData) => {
           if (freezeData != null) {
-          const allData =  freezeModel.findOne({ walletAddr: walletAddr})
-            // let diffTime = date / 1000 - freezeData.freezeStartDuration / 1000;
-            // let diffRemainTime =
-            //   freezeData.freezeEndDuration / 1000 - date / 1000;
-            // let perSecondRoi =
-            //   (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
-            // let totalRoi = perSecondRoi * diffTime;
-            // let totalRemainRoi = perSecondRoi * diffRemainTime;
-            // let refferalperSecondRoi =
-            //   (freezeData.freezeAmt * (0.1 / 100)) / (60 * 60 * 24);
-            // let totalReferralRoi = refferalperSecondRoi * diffTime;
+          const allData =  await freezeModel.aggregate([
+            { $match: { walletAddr: walletAddr } },
+            {
+              $group: {
+                _id: "$walletAddr",
+                TotalfreezeAmt: { $sum: "$freezeAmt" },
+                TotalparentroiAmount: { $sum: "$parentroiAmount" }
+              },
+            },
+          
+          ]);
+    
             let perSecondRoi =
               (freezeData.freezeAmt * (1 / 100)) / (60 * 60 * 24);
             let refferalperSecondRoi =
