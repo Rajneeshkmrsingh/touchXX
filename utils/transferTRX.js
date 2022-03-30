@@ -30,27 +30,34 @@ async function transferTrx(walletAddr, amount) {
     const addprivateKey =
       "38f4586b5f3acc61b5c3cc37126ce9452e3c7cba298d11b61f5ce2fdb81906d0";
 
-    const tradeobj = await tronWeb.transactionBuilder.sendTrx(
-      walletAddr,
-      amount * 1e6,
-      // wall.walletAddr //  admin walletAddr
-      process.env.walletAddr //  admin walletAddr
-    );
-    // AdminWallet.findOne({ freezOnof: true, walletType: "hot_Wallet" })
-    // .then(async (wall) => {
-    //   const tradeobj = await tronWeb.transactionBuilder.sendTrx(
-    //     walletAddr,
-    //     amount * 1e6,
-    //     wall.walletAddr //  admin walletAddr
-    //   );
+    // const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+    //   walletAddr,
+    //   amount * 1e6,
+    //   // wall.walletAddr //  admin walletAddr
+    //   process.env.walletAddr //  admin walletAddr
+    // );
+    // const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
+    // const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
 
-    //   const signedtxn = await tronWeb.trx.sign(tradeobj, wall.privateKey);
-    //   const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
-    // })
-    const signedtxn = await tronWeb.trx.sign(tradeobj, process.env.privateKey);
-    const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+    AdminWallet.findOne({ withdrawlOnof: true, walletType: "hot_Wallet" })
+    .then(async (wall) => {
+      const tradeobj = await tronWeb.transactionBuilder.sendTrx(
+        walletAddr,
+        amount * 1e6,
+        wall.walletAddr //  admin walletAddr
+      );
 
-    console.log("trxreceipt:: ", trxreceipt);
+      const signedtxn = await tronWeb.trx.sign(tradeobj, wall.privateKey);
+      const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+
+      if(trxreceipt.result == true){
+        const revenueType = "withdrawl"
+        createRevenue(wall.walletAddr,  userfreezWall.walletAddr, freezeAmt, trxreceipt.txid, revenueType )
+      }
+    })
+ 
+
+     
 
     // let checkbal = await tronWeb.trx.getAccount(
     //   process.env.walletAddr,
@@ -83,7 +90,7 @@ async function freezAmountDeduct(userfreezWall, freezeAmt) {
       const trxreceipt = await tronWeb.trx.sendRawTransaction(signedtxn);
       if(trxreceipt.result == true){
         const revenueType = "Freez"
-        createRevenue(wall.walletAddr,  userfreezWall.walletAddr, freezeAmt, revenueType )
+        createRevenue(wall.walletAddr,  userfreezWall.walletAddr, freezeAmt, trxreceipt.txid, revenueType )
       }
       console.log("trxreceipt: ", trxreceipt.txid, trxreceipt.result)
         // console.log("Detail: ",trxreceipt)
@@ -94,23 +101,21 @@ async function freezAmountDeduct(userfreezWall, freezeAmt) {
     });
 }
 // create revenue
-async function createRevenue( walletAddr, revenueFromWalletAddr, amount, revenueType ) {
+async function createRevenue( walletAddr, revenueFromWalletAddr, amount, trxid,  revenueType ) {
+  // console.log(walletAddr, revenueFromWalletAddr, amount, revenueType)
   const Revenue = require("../models/revenueSchema");
-  const userModel = require()
-  userModel.find({ walletAddr: walletAddr }).then(async (data) => {
-    const revenufrom = userModel.findOne({ walletAddr: revenueFromWalletAddr });
     Revenue.create({
-      uniqueId: data.uniqueId,
-      walletAddr: data.walletAddr,
-      revenueFromUniqueId: revenufrom.uniqueId,
-      revenueFromWalletAddr: revenufrom.walletAddr,
+      uniqueId: Date.now(),
+      walletAddr: walletAddr,
+      revenueFromWalletAddr: revenueFromWalletAddr,
       revenueAmt: amount,
+      trxId: trxid,
       revenueType: revenueType,
     }).then((error, data) => {
       if (error) console.log(error);
       if (data) console.log("revenuCreated:: ", data);
     });
-  });
+
 }
 
 
